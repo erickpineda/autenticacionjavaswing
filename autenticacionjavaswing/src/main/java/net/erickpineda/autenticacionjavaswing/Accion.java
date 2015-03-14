@@ -1,41 +1,52 @@
 package net.erickpineda.autenticacionjavaswing;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Accion {
-
-	private static String pathFile = "/datos";
+	/**
+	 * Ruta del fichero a guardar.
+	 */
 	private static String saveFile = "save";
-	private static InputStream ficheroALeer;
-	private static BufferedReader inFile;
-	private static String user;
-	private static String pass;
-	private static FileWriter ficheroAEscribir;
-	private static PrintWriter outFile;
+	/**
+	 * Fichero de salida.
+	 */
 	private static OutputStream fos;
+	/**
+	 * Escritor del objeto.
+	 */
 	private static ObjectOutputStream oos;
+	/**
+	 * Fichero de entrada.
+	 */
 	private static FileInputStream fis;
+	/**
+	 * Lector del fichero.
+	 */
 	private static ObjectInputStream ois;
+	/**
+	 * Lista de usuarios.
+	 */
 	private static List<Usuario> lista;
 
 	public Accion() {
-
+		comprobarExistenciaFichero();
 	}
 
-	protected void inicio(String myUser, String myPass, String myCard) {
+	/**
+	 * Método que comprueba la existencia del fichero, que guardará la
+	 * información necesaria.
+	 */
+	protected void comprobarExistenciaFichero() {
 		File miFichero = new File(saveFile);
 
 		try {
@@ -45,7 +56,7 @@ public class Accion {
 			} else {
 				abrirFichero();
 			}
-			checkUsuario(myUser, myPass, myCard);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -85,6 +96,7 @@ public class Accion {
 	 * @throws ClassNotFoundException
 	 *             Si el nombre de la clase no se encuentra.
 	 */
+	@SuppressWarnings("unchecked")
 	public static void abrirFichero() throws IOException,
 			ClassNotFoundException {
 
@@ -97,30 +109,68 @@ public class Accion {
 
 	}
 
+	/**
+	 * Método que crea usuarios en la lista.
+	 * 
+	 * @param myUser
+	 *            Parámetro del nombre de usuario.
+	 * @param myPass
+	 *            Parámetro para contraseña del usuario.
+	 * @param myCard
+	 *            Parámetro para la carta escogida por el usuario.
+	 */
 	protected void crearUsuario(String myUser, String myPass, String myCard) {
-
 		lista.add(new Usuario(myUser, myPass, myCard));
-
 	}
 
-	private void escribirUsuarioEnFichero() throws IOException {
+	protected void setUsuario(String myUser, String myPass, String myCard) {
 
-		System.out.println("Estoy escribiendo");
-
-		OutputStream fos = new FileOutputStream(saveFile);
-		ObjectOutputStream oos = new ObjectOutputStream(fos);
-
-		oos.writeObject(lista);
-		oos.close();
+		for (Usuario u : lista) {
+			if (u.getNameUser().equalsIgnoreCase(myUser)
+					&& u.getPassUser().equals(myPass)) {
+				u.setCaraCarta(myCard);
+			}
+		}
 	}
 
-	protected boolean comprobarUsuario(String myUser, String myPass) {
+	/**
+	 * Método que guarda en el fichero la lista de usuarios.
+	 */
+	protected void escribirUsuarioEnFichero() {
+
+		System.out.println("** Escribiendo en el fichero");
+
+		ObjectOutputStream oos;
+		OutputStream fos;
+
+		try {
+
+			fos = new FileOutputStream(saveFile);
+			oos = new ObjectOutputStream(fos);
+
+			oos.writeObject(lista);
+			oos.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Método que comprueba la existencia de un usuario, a partir de su nombre.
+	 * 
+	 * @param myUser
+	 *            Nombre del usuario.
+	 * @return Retorna si el usuario existe o no.
+	 */
+	protected boolean comprobarExistenciaUsuario(String myUser) {
 
 		boolean existe = false;
 
 		for (Usuario u : lista) {
-			if (u.getNameUser().equals(myUser) && 
-					u.getNameUser().equals(myPass)) {
+			if (u.getNameUser().equals(myUser)) {
 				existe = true;
 				System.out.println("existe = " + existe);
 			}
@@ -129,138 +179,49 @@ public class Accion {
 		return existe;
 	}
 
-	protected void checkUsuario(String myUser, String myPass, String myCard)
-			throws IOException {
+	/**
+	 * Comprueba que al iniciar sesión el usuario, sus credenciales son válidas.
+	 * 
+	 * @param myUser
+	 *            Nombre del usuario a comprobar.
+	 * @param myPass
+	 *            Contraseña del usuario.
+	 * @param myCard
+	 *            Carta escogida del usuario.
+	 * @return Retorna si todos los valores del usuario con correcto o erróneos.
+	 */
+	protected boolean comprobarCredenciales(String myUser, String myPass,
+			String myCard) {
 
-		if (!comprobarUsuario(myUser,myPass) == true) {
-			crearUsuario(myUser, myPass, myCard);
-			escribirUsuarioEnFichero();
-			
-		} else {
-			for (Usuario u : lista) 
-				System.out.println(u);
-			
-		}
-	}
+		boolean todoOk = false;
 
-	protected static void createUserPass(String myUser, String myPass) {
-		lista.add(new Usuario(myPass, myPass));
-	}
+		Iterator<Usuario> itera = lista.iterator();
 
-	public static boolean checkUserPass2(String myUser, String myPass) {
+		while (itera.hasNext()) {
+			Usuario u = itera.next();
 
-		boolean check = false;
+			if (u.getNameUser().equals(myUser)) {
+				if (u.getPassUser().equals(myPass)
+						&& u.getCaraCarta().equals(myCard)) {
 
-		try {
+					todoOk = true;
+					System.out.println("  Login correcto ");
 
-			String linea;
-
-			ficheroALeer = App.class.getResourceAsStream(pathFile.replace(
-					"src/main/resources", ""));
-			inFile = new BufferedReader(new InputStreamReader(ficheroALeer));
-
-			if (inFile != null) {
-				linea = inFile.readLine();
-
-				while (linea != null) {
-					String[] array = linea.split(":");
-
-					if (myUser.equalsIgnoreCase(array[0].trim())
-							&& myPass.equals(array[1].trim())) {
-
-						lista.add(new Usuario(myPass, myPass));
-						check = true;
-						System.out.println(myUser + "  " + myPass);
-
-					}
-
-					linea = inFile.readLine();
+				} else {
+					System.out.println("  la contraseña es incorrecta ");
 				}
-
-			}
-			inFile.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return check;
-	}
-
-	protected static String writeCheck2(String myUser, String myPass,
-			String cartaEscogida) {
-		try {
-
-			for (int i = 0; i < lista.size(); i++) {
-				lista.get(i).setCaraCarta(cartaEscogida);
 			}
 
-			oos.writeObject(lista);
-
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
-		return cartaEscogida;
+		return todoOk;
 	}
 
-	public static boolean checkUserPass(String myUser, String myPass) {
-
-		boolean check = false;
-
-		try {
-
-			String linea;
-
-			ficheroALeer = App.class.getResourceAsStream(pathFile);
-			inFile = new BufferedReader(new InputStreamReader(ficheroALeer));
-
-			if (inFile != null) {
-				linea = inFile.readLine();
-
-				while (linea != null) {
-					String[] array = linea.split(":");
-
-					if (myUser.equalsIgnoreCase(array[0].trim())
-							&& myPass.equals(array[1].trim())) {
-
-						user = myUser;
-						pass = myPass;
-						check = true;
-						System.out.println(user + "  " + pass);
-
-					}
-
-					linea = inFile.readLine();
-				}
-
-			}
-			inFile.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return check;
-	}
-
-	protected static String writeCheck(String myUser, String myPass,
-			String cartaEscogida) {
-		try {
-
-			ficheroAEscribir = new FileWriter("src/main/resources/aaa", false);
-			outFile = new PrintWriter(ficheroAEscribir);
-
-			outFile.println(myUser + " : " + myPass + " : " + cartaEscogida);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (ficheroAEscribir != null)
-				try {
-					ficheroAEscribir.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-		return cartaEscogida;
+	/**
+	 * 
+	 * @return Retorna la lista de usuarios.
+	 */
+	public List<Usuario> getLista() {
+		return lista;
 	}
 
 }

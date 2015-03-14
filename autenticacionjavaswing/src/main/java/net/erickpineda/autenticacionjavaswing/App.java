@@ -23,6 +23,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JPasswordField;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * 
@@ -98,7 +100,19 @@ public class App extends JFrame {
 						FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
 						ColumnSpec.decode("86px"),
 						FormFactory.LABEL_COMPONENT_GAP_COLSPEC,
-						ColumnSpec.decode("57px"), }, new RowSpec[] {
+						ColumnSpec.decode("57px"),
+						FormFactory.RELATED_GAP_COLSPEC,
+						FormFactory.DEFAULT_COLSPEC,
+						FormFactory.RELATED_GAP_COLSPEC,
+						FormFactory.DEFAULT_COLSPEC,
+						FormFactory.RELATED_GAP_COLSPEC,
+						FormFactory.DEFAULT_COLSPEC,
+						FormFactory.RELATED_GAP_COLSPEC,
+						FormFactory.DEFAULT_COLSPEC,
+						FormFactory.RELATED_GAP_COLSPEC,
+						FormFactory.DEFAULT_COLSPEC,
+						FormFactory.RELATED_GAP_COLSPEC,
+						FormFactory.DEFAULT_COLSPEC, }, new RowSpec[] {
 						RowSpec.decode("21px"), RowSpec.decode("23px"),
 						FormFactory.RELATED_GAP_ROWSPEC,
 						FormFactory.DEFAULT_ROWSPEC,
@@ -118,6 +132,23 @@ public class App extends JFrame {
 						FormFactory.DEFAULT_ROWSPEC, }));
 
 		contentPane.setSize(240, 400);
+
+		JLabel lblAyuda = new JLabel("Ayuda*");
+		lblAyuda.setToolTipText("Haz Click");
+		lblAyuda.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				JOptionPane
+						.showConfirmDialog(
+								null,
+								"Los usuarios se autocrean, en el momento que se inicia sesión,\n"
+										+ " por lo que no hace falta 'registro'. Pero se recuerda que usuario,\n"
+										+ " contraseña e imagen se ha creado. Así que no olvidar las credenciales",
+								"Para iniciar sesión",
+								JOptionPane.CLOSED_OPTION);
+			}
+		});
+		contentPane.add(lblAyuda, "10, 1, 3, 1, center, default");
 
 		JLabel lblUsuario = new JLabel("Usuario");
 		contentPane.add(lblUsuario, "4, 8, left, center");
@@ -165,31 +196,63 @@ public class App extends JFrame {
 		setLocationRelativeTo(null);
 	}
 
+	public int panelEscogerImagen(JPanel escogerImg) {
+		return JOptionPane.showConfirmDialog(null, escogerImg,
+				"Escoge una imágen", JOptionPane.OK_CANCEL_OPTION);
+	}
+
+	public void nullValues() {
+		JOptionPane.showMessageDialog(null,
+				"Error: no se aceptan valores nulos", "Error null values",
+				JOptionPane.ERROR_MESSAGE);
+	}
+
+	public void errorDeCredenciales() {
+		JOptionPane.showMessageDialog(null, "Error: credenciales incorrectas",
+				"Incorrecto", JOptionPane.WARNING_MESSAGE);
+	}
+
+	/**
+	 * Acciones que ejecutará cuando se haga click en el botón Login.
+	 * 
+	 * @param myUser
+	 *            Usuario a iniciar sesión
+	 * @param myPass
+	 *            Contraseña del usuario.
+	 */
 	public void clickLogin(String myUser, String myPass) {
 
 		if (myUser.length() > 0 && myPass.length() > 0) {
 
-			if (Accion.checkUserPass(myUser, myPass) == true) {
+			Accion actua = new Accion();
+			JPanelImg escogerImg = new JPanelImg();
 
-				JPanelImg escogerImg = new JPanelImg();
+			if (actua.comprobarExistenciaUsuario(myUser) == true) {
+				panelEscogerImagen(escogerImg);
 
-				JOptionPane.showConfirmDialog(null, escogerImg,
-						"Escoge una imágen", JOptionPane.OK_CANCEL_OPTION);
+				if (escogerImg.onClick() == true) {
 
-				Accion actua = new Accion();
-				actua.inicio(myUser, myPass, escogerImg.checkImg());
-				
-				//Accion.writeCheck(myUser, myPass, escogerImg.checkImg());
+					if (actua.comprobarCredenciales(myUser, myPass,
+							escogerImg.checkImg()) == false) {
 
+						errorDeCredenciales();
+					} else {
+						InterfazUsuario ui = new InterfazUsuario();
+						ui.setMensajeBienvenida(myUser);
+						panelEscogerImagen(ui);
+						actua.setUsuario(myUser, myPass, ui.checkImg());
+						actua.escribirUsuarioEnFichero();
+					}
+				} else {
+					nullValues();
+				}
 			} else {
-				JOptionPane.showMessageDialog(null,
-						"Error Username / Password", "Incorrecto",
-						JOptionPane.WARNING_MESSAGE);
+				panelEscogerImagen(escogerImg);
+				actua.crearUsuario(myUser, myPass, escogerImg.checkImg());
+				actua.escribirUsuarioEnFichero();
 			}
 		} else {
-			JOptionPane.showMessageDialog(null,
-					"Error Write Username / Password", "Error null values",
-					JOptionPane.ERROR_MESSAGE);
+			nullValues();
 		}
 	}
 }

@@ -13,10 +13,14 @@ public class Usuario implements Serializable {
 	 */
 	private String caraCarta;
 	/**
+	 * Variable para saber si el usuario existe en el fichero.
+	 */
+	private boolean existenciaDeUsuario = false;
+
+	/**
 	 * Será la contraseña del usuario.
 	 */
 	private String pass;
-
 	/**
 	 * Será el nombre del usuario.
 	 */
@@ -73,11 +77,31 @@ public class Usuario implements Serializable {
 	}
 
 	/**
+	 * Método que retorna true o false la existencia del usuario.
+	 * 
+	 * @return Retorna un boleano de {@code existenciaDeUsuario}.
+	 * 
+	 */
+	public boolean esPrimeraVezQueEntra() {
+		return existenciaDeUsuario;
+	}
+
+	/**
 	 * @param caraCarta
 	 *            Cambia la carta escogida por el usuario.
 	 */
 	public void setCaraCarta(String caraCarta) {
 		this.caraCarta = caraCarta;
+	}
+
+	/**
+	 * Método que cambia el valor de existencia de un usuario.
+	 * 
+	 * @param existenciaDeUsuario
+	 *            Parámetro que pasará a cambiar sea false o true.
+	 */
+	public void setPrimeraVezQueEntra(boolean existenciaDeUsuario) {
+		this.existenciaDeUsuario = existenciaDeUsuario;
 	}
 
 	/**

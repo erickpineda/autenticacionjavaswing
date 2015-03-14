@@ -15,7 +15,7 @@ public class JPanelImg extends JPanel {
 	 */
 	private static final long serialVersionUID = 1L;
 	public static String caraCarta;
-
+	private boolean click = false;
 	/**
 	 * Create the panel.
 	 */
@@ -69,6 +69,11 @@ public class JPanelImg extends JPanel {
 
 	public String checkImg() {
 		System.out.println("boton corazon clic" + caraCarta);
+		click = true;
 		return caraCarta;
+	}
+	
+	public boolean onClick(){
+		return click;
 	}
 }
